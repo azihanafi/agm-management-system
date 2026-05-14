@@ -133,6 +133,8 @@ class BulkMemberUpload extends Component
     {
         if (!$this->csvFile) return;
 
+        set_time_limit(0);
+
         $this->result = null;
         $this->logs   = [];
 
