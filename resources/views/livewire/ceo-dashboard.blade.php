@@ -485,37 +485,63 @@
                     </form>
                 </div>
 
-                {{-- ── Nomination Period (standalone card) ── --}}
-                <div class="bg-indigo-600/5 border border-indigo-600/20 p-8 rounded-3xl">
+                {{-- ── Nomination Period (standalone Alpine card) ── --}}
+                <div
+                    x-data="{
+                        opensAt: @js($nominationOpensAt),
+                        closesOn: @js($nominationOpenUntil),
+                        saved: false,
+                        init() {
+                            const self = this;
+                            flatpickr('#nom-opens-at', {
+                                dateFormat: 'Y-m-d',
+                                altInput: true,
+                                altFormat: 'd/m/Y',
+                                defaultDate: self.opensAt || null,
+                                onChange(d, str) { self.opensAt = str; }
+                            });
+                            flatpickr('#nom-closes-on', {
+                                dateFormat: 'Y-m-d',
+                                altInput: true,
+                                altFormat: 'd/m/Y',
+                                defaultDate: self.closesOn || null,
+                                onChange(d, str) { self.closesOn = str; }
+                            });
+                        },
+                        async save() {
+                            await $wire.saveNominationPeriod(this.opensAt || '', this.closesOn || '');
+                            this.saved = true;
+                            setTimeout(() => this.saved = false, 3000);
+                        }
+                    }"
+                    class="bg-indigo-600/5 border border-indigo-600/20 p-8 rounded-3xl"
+                >
                     <div class="pb-4 border-b border-indigo-600/20 mb-6">
                         <h4 class="text-xl font-bold text-white">Nomination Period</h4>
                         <p class="text-xs text-gray-500 mt-1">Set the exact date range during which members can submit nominations.</p>
                     </div>
 
-                    <div wire:ignore class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="grid grid-cols-2 gap-4 mb-6">
                         <div>
                             <label class="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Opens On</label>
-                            <input id="nomination-opens-at" type="text"
+                            <input id="nom-opens-at" type="text"
                                 class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white font-bold cursor-pointer"
-                                placeholder="Pick start date"
-                                value="{{ $nominationOpensAt ? \Carbon\Carbon::parse($nominationOpensAt)->format('d/m/Y') : '' }}">
+                                placeholder="Pick start date">
                         </div>
                         <div>
                             <label class="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Closes On</label>
-                            <input id="nomination-deadline" type="text"
+                            <input id="nom-closes-on" type="text"
                                 class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white font-bold cursor-pointer"
-                                placeholder="Pick end date"
-                                value="{{ $nominationOpenUntil ? \Carbon\Carbon::parse($nominationOpenUntil)->format('d/m/Y') : '' }}">
+                                placeholder="Pick end date">
                         </div>
                     </div>
 
-                    @if($nominationMessage)
-                        <div class="mb-4 p-3 bg-green-500/20 border border-green-500/30 rounded-xl text-green-400 text-sm font-medium text-center">
-                            {{ $nominationMessage }}
-                        </div>
-                    @endif
+                    <div x-show="saved" x-transition
+                        class="mb-4 p-3 bg-green-500/20 border border-green-500/30 rounded-xl text-green-400 text-sm font-medium text-center">
+                        Nomination period saved!
+                    </div>
 
-                    <button type="button" wire:click="saveNominationPeriod"
+                    <button type="button" @click="save()"
                         class="w-full bg-indigo-600 hover:bg-indigo-700 py-4 rounded-2xl font-bold shadow-xl shadow-indigo-500/20 transition-all flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         Save Nomination Period
@@ -804,14 +830,7 @@
                 altInput: true, altFormat: 'H:i', time_24hr: true, theme: 'light',
                 onChange: (d, str) => @this.set('endTime', str)
             });
-            tryPicker('nomination-opens-at', {
-                dateFormat: 'Y-m-d', altInput: true, altFormat: 'd/m/Y', theme: 'light',
-                onChange: (d, str) => @this.set('nominationOpensAt', str)
-            });
-            tryPicker('nomination-deadline', {
-                dateFormat: 'Y-m-d', altInput: true, altFormat: 'd/m/Y', theme: 'light',
-                onChange: (d, str) => @this.set('nominationOpenUntil', str)
-            });
+            // nomination-opens-at and nom-closes-on are managed by Alpine x-data above
         }
 
         // Run after every Livewire render (covers tab switches) and on hard load

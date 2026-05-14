@@ -96,14 +96,16 @@ class CeoDashboard extends Component
         $this->showNominationQrModal = !$this->showNominationQrModal;
     }
 
-    public function saveNominationPeriod()
+    public function saveNominationPeriod(string $opensAt = '', string $closesOn = '')
     {
         $settings = \App\Models\MeetingControl::first();
         $settings->update([
-            'nomination_opens_at'   => $this->nominationOpensAt ?: null,
-            'nomination_open_until' => $this->nominationOpenUntil ?: null,
+            'nomination_opens_at'   => $opensAt ?: null,
+            'nomination_open_until' => $closesOn ?: null,
         ]);
-        $this->nominationMessage = 'Nomination period saved!';
+        $this->nominationOpensAt   = $opensAt ?: null;
+        $this->nominationOpenUntil = $closesOn ?: null;
+        $this->nominationMessage   = 'Nomination period saved!';
     }
 
     public function refreshSettings()
