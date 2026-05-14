@@ -15,11 +15,13 @@ class MeetingControl extends Model
         'meeting_date',
         'start_time',
         'end_time',
+        'nomination_opens_at',
         'nomination_open_until',
     ];
 
     protected $casts = [
-        'tac_expires_at'       => 'datetime',
+        'tac_expires_at'        => 'datetime',
+        'nomination_opens_at'   => 'date',
         'nomination_open_until' => 'date',
     ];
 }

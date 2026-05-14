@@ -155,28 +155,47 @@
 
             {{-- Nomination Period Card --}}
             @php
-                $nomIsOpen = $nominationOpenUntil && \Carbon\Carbon::today()->lte(\Carbon\Carbon::parse($nominationOpenUntil));
+                $today = \Carbon\Carbon::today();
+                $nomStart = $nominationOpensAt ? \Carbon\Carbon::parse($nominationOpensAt) : null;
+                $nomEnd   = $nominationOpenUntil ? \Carbon\Carbon::parse($nominationOpenUntil) : null;
+                if (!$nomStart && !$nomEnd) {
+                    $nomStatus = 'no-period';
+                } elseif ($nomStart && $today->lt($nomStart)) {
+                    $nomStatus = 'upcoming';
+                } elseif ($nomEnd && $today->gt($nomEnd)) {
+                    $nomStatus = 'closed';
+                } else {
+                    $nomStatus = 'open';
+                }
             @endphp
             <div class="mb-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 bg-white/5 border border-white/10 rounded-2xl">
                 <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-xl flex items-center justify-center {{ $nomIsOpen ? 'bg-indigo-600/20 text-indigo-400' : 'bg-red-500/10 text-red-400' }}">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center
+                        {{ $nomStatus === 'open' ? 'bg-indigo-600/20 text-indigo-400' : ($nomStatus === 'upcoming' ? 'bg-yellow-500/10 text-yellow-400' : 'bg-red-500/10 text-red-400') }}">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                         </svg>
                     </div>
                     <div>
                         <p class="text-xs text-gray-500 uppercase font-bold tracking-widest">Nomination Period</p>
-                        <div class="flex items-center gap-3 mt-1">
-                            <span class="font-black text-lg {{ $nomIsOpen ? 'text-indigo-400' : 'text-red-400' }}">
-                                {{ $nomIsOpen ? 'OPEN' : 'CLOSED' }}
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                            <span class="font-black text-lg
+                                {{ $nomStatus === 'open' ? 'text-indigo-400' : ($nomStatus === 'upcoming' ? 'text-yellow-400' : 'text-red-400') }}">
+                                {{ $nomStatus === 'open' ? 'OPEN' : ($nomStatus === 'upcoming' ? 'UPCOMING' : ($nomStatus === 'closed' ? 'CLOSED' : 'NOT SET')) }}
                             </span>
-                            @if($nominationOpenUntil)
-                                <span class="text-xs text-gray-500">
-                                    · {{ $nomIsOpen ? 'Closes' : 'Closed' }} on
-                                    <span class="text-white font-bold">{{ \Carbon\Carbon::parse($nominationOpenUntil)->format('d M Y') }}</span>
+                            @if($nomStart || $nomEnd)
+                                <span class="text-xs text-gray-500">·
+                                    @if($nomStart)
+                                        <span class="text-gray-400">From</span>
+                                        <span class="text-white font-bold">{{ $nomStart->format('d M Y') }}</span>
+                                    @endif
+                                    @if($nomEnd)
+                                        <span class="text-gray-400">{{ $nomStart ? ' until' : 'Until' }}</span>
+                                        <span class="text-white font-bold">{{ $nomEnd->format('d M Y') }}</span>
+                                    @endif
                                 </span>
                             @else
-                                <span class="text-xs text-gray-500 italic">· No deadline set</span>
+                                <span class="text-xs text-gray-500 italic">· No period configured</span>
                             @endif
                         </div>
                     </div>
@@ -418,14 +437,23 @@
                     <div wire:ignore class="p-6 bg-indigo-600/5 border border-indigo-600/20 rounded-2xl">
                         <div class="pb-2 border-b border-indigo-600/20 mb-4">
                             <h5 class="text-sm font-bold text-indigo-400 uppercase tracking-widest">Nomination Period</h5>
-                            <p class="text-[10px] text-gray-500 mt-1">Members can submit nominations up to and including this date.</p>
+                            <p class="text-[10px] text-gray-500 mt-1">Set the date range during which members can submit nominations.</p>
                         </div>
-                        <div>
-                            <label class="block text-[10px] text-gray-500 uppercase mb-2">Nomination Closes On</label>
-                            <input id="nomination-deadline" type="text"
-                                class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white font-bold cursor-pointer"
-                                placeholder="Select deadline date"
-                                value="{{ $nominationOpenUntil ? \Carbon\Carbon::parse($nominationOpenUntil)->format('d/m/Y') : '' }}">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] text-gray-500 uppercase mb-2">Opens On</label>
+                                <input id="nomination-opens-at" type="text"
+                                    class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white font-bold cursor-pointer"
+                                    placeholder="Start date"
+                                    value="{{ $nominationOpensAt ? \Carbon\Carbon::parse($nominationOpensAt)->format('d/m/Y') : '' }}">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-gray-500 uppercase mb-2">Closes On</label>
+                                <input id="nomination-deadline" type="text"
+                                    class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white font-bold cursor-pointer"
+                                    placeholder="End date"
+                                    value="{{ $nominationOpenUntil ? \Carbon\Carbon::parse($nominationOpenUntil)->format('d/m/Y') : '' }}">
+                            </div>
                         </div>
                     </div>
 
@@ -776,6 +804,16 @@
                 }
             });
 
+            flatpickr("#nomination-opens-at", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                theme: "light",
+                onChange: function(selectedDates, dateStr) {
+                    @this.set('nominationOpensAt', dateStr);
+                }
+            });
+
             flatpickr("#nomination-deadline", {
                 dateFormat: "Y-m-d",
                 altInput: true,
@@ -877,10 +915,12 @@
                     <div>
                         <h3 class="text-xl font-bold">Nomination QR</h3>
                         <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">
-                            @if($nominationOpenUntil)
-                                Closes {{ \Carbon\Carbon::parse($nominationOpenUntil)->format('d M Y') }}
+                            @if($nominationOpensAt || $nominationOpenUntil)
+                                {{ $nominationOpensAt ? \Carbon\Carbon::parse($nominationOpensAt)->format('d M Y') : '?' }}
+                                &rarr;
+                                {{ $nominationOpenUntil ? \Carbon\Carbon::parse($nominationOpenUntil)->format('d M Y') : '?' }}
                             @else
-                                No deadline set
+                                No period set
                             @endif
                         </p>
                     </div>

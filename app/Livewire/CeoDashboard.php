@@ -19,6 +19,7 @@ class CeoDashboard extends Component
     public $attendanceUrl;
     public $showNominationQrModal = false;
     public $nominationUrl;
+    public $nominationOpensAt;
     public $nominationOpenUntil;
     
     // Position Management
@@ -76,9 +77,12 @@ class CeoDashboard extends Component
         
         $this->attendanceUrl    = route('attendance.scan');
         $this->nominationUrl    = route('nominate.index');
+        $this->nominationOpensAt = $settings->nomination_opens_at
+            ? $settings->nomination_opens_at->format('Y-m-d')
+            : null;
         $this->nominationOpenUntil = $settings->nomination_open_until
             ? $settings->nomination_open_until->format('Y-m-d')
-            : '2026-05-20';
+            : null;
     }
 
     public function toggleQrModal()
@@ -138,6 +142,7 @@ class CeoDashboard extends Component
             'meeting_date'          => $this->meetingDate,
             'start_time'            => $this->startTime,
             'end_time'              => $this->endTime,
+            'nomination_opens_at'   => $this->nominationOpensAt ?: null,
             'nomination_open_until' => $this->nominationOpenUntil ?: null,
         ]);
         session()->flash('settings_message', 'Meeting settings and schedule updated successfully!');

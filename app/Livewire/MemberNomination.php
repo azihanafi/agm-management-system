@@ -23,17 +23,28 @@ class MemberNomination extends Component
         $this->message = '';
     }
 
-    private function nominationIsOpen(): bool
+    private function nominationStatus(): string
     {
         $settings = MeetingControl::first();
-        if (!$settings || !$settings->nomination_open_until) return true;
-        return Carbon::today()->lte($settings->nomination_open_until);
+        $today = Carbon::today();
+        $start = $settings?->nomination_opens_at;
+        $end   = $settings?->nomination_open_until;
+
+        if (!$start && !$end) return 'open';
+        if ($start && $today->lt($start)) return 'upcoming';
+        if ($end && $today->gt($end)) return 'closed';
+        return 'open';
     }
 
     public function submitNomination()
     {
-        if (!$this->nominationIsOpen()) {
+        $status = $this->nominationStatus();
+        if ($status === 'closed') {
             $this->message = 'Nominations are now closed.';
+            return;
+        }
+        if ($status === 'upcoming') {
+            $this->message = 'Nominations have not opened yet.';
             return;
         }
 
@@ -74,14 +85,14 @@ class MemberNomination extends Component
     public function render()
     {
         $settings = MeetingControl::first();
-        $nominationDeadline = $settings?->nomination_open_until;
-        $isOpen = $this->nominationIsOpen();
+        $status = $this->nominationStatus();
 
         return view('livewire.member-nomination', [
             'positions' => Position::all(),
-            'nominationIsOpen' => $isOpen,
-            'nominationDeadline' => $nominationDeadline,
-            'members' => ($isOpen && strlen($this->search) >= 2)
+            'nominationStatus'   => $status,
+            'nominationOpensAt'  => $settings?->nomination_opens_at,
+            'nominationDeadline' => $settings?->nomination_open_until,
+            'members' => ($status === 'open' && strlen($this->search) >= 2)
                 ? User::where(function($q) {
                         $q->where('name', 'like', '%' . $this->search . '%')
                           ->orWhere('staff_id', 'like', '%' . $this->search . '%');
