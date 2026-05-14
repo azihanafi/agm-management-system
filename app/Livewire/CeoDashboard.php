@@ -21,6 +21,7 @@ class CeoDashboard extends Component
     public $nominationUrl;
     public $nominationOpensAt;
     public $nominationOpenUntil;
+    public $nominationMessage = '';
     
     // Position Management
     public $newPositionName;
@@ -95,6 +96,16 @@ class CeoDashboard extends Component
         $this->showNominationQrModal = !$this->showNominationQrModal;
     }
 
+    public function saveNominationPeriod()
+    {
+        $settings = \App\Models\MeetingControl::first();
+        $settings->update([
+            'nomination_opens_at'   => $this->nominationOpensAt ?: null,
+            'nomination_open_until' => $this->nominationOpenUntil ?: null,
+        ]);
+        $this->nominationMessage = 'Nomination period saved!';
+    }
+
     public function refreshSettings()
     {
         $settings = \App\Models\MeetingControl::first();
@@ -136,14 +147,12 @@ class CeoDashboard extends Component
         $this->endTime = $this->endTime ?: $settings->end_time;
 
         $settings->update([
-            'meeting_tac'           => $this->meetingTac,
-            'is_voting_open'        => (bool)$this->isVotingOpen,
-            'active_position_id'    => $this->activePositionId ?: null,
-            'meeting_date'          => $this->meetingDate,
-            'start_time'            => $this->startTime,
-            'end_time'              => $this->endTime,
-            'nomination_opens_at'   => $this->nominationOpensAt ?: null,
-            'nomination_open_until' => $this->nominationOpenUntil ?: null,
+            'meeting_tac'        => $this->meetingTac,
+            'is_voting_open'     => (bool)$this->isVotingOpen,
+            'active_position_id' => $this->activePositionId ?: null,
+            'meeting_date'       => $this->meetingDate,
+            'start_time'         => $this->startTime,
+            'end_time'           => $this->endTime,
         ]);
         session()->flash('settings_message', 'Meeting settings and schedule updated successfully!');
     }

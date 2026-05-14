@@ -406,103 +406,122 @@
         @endif
 
         @if($activeTab === 'settings')
-            <div wire:poll.10s class="max-w-xl bg-white/5 border border-white/10 p-8 rounded-3xl">
-                <h4 class="text-xl font-bold mb-6">Global Meeting Controls</h4>
-                
-                @if (session()->has('settings_message'))
-                    <div class="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-2xl text-green-400 text-sm">
-                        {{ session('settings_message') }}
-                    </div>
-                @endif
+            <div class="max-w-xl space-y-6">
 
-                <form wire:submit="updateSettings" class="space-y-8">
-                    <div wire:ignore class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-white/5 border border-white/10 rounded-2xl">
-                        <div class="md:col-span-3 pb-2 border-b border-white/10">
-                            <h5 class="text-sm font-bold text-indigo-400 uppercase tracking-widest">Meeting Session Schedule</h5>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] text-gray-500 uppercase mb-2">Meeting Date</label>
-                            <input id="meeting-date" type="text" class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white font-bold cursor-pointer" placeholder="Select Date" value="{{ $meetingDate ? \Carbon\Carbon::parse($meetingDate)->format('d/m/Y') : '' }}">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] text-gray-500 uppercase mb-2">Start Time</label>
-                            <input id="start-time" type="text" class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white font-bold cursor-pointer" placeholder="Select Time" value="{{ $startTime ? \Carbon\Carbon::parse($startTime)->format('H:i') : '' }}">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] text-gray-500 uppercase mb-2">End Time</label>
-                            <input id="end-time" type="text" class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white font-bold cursor-pointer" placeholder="Select Time" value="{{ $endTime ? \Carbon\Carbon::parse($endTime)->format('H:i') : '' }}">
-                        </div>
-                    </div>
+                {{-- ── Main Meeting Controls ── --}}
+                <div wire:poll.10s class="bg-white/5 border border-white/10 p-8 rounded-3xl">
+                    <h4 class="text-xl font-bold mb-6">Global Meeting Controls</h4>
 
-                    <div wire:ignore class="p-6 bg-indigo-600/5 border border-indigo-600/20 rounded-2xl">
-                        <div class="pb-2 border-b border-indigo-600/20 mb-4">
-                            <h5 class="text-sm font-bold text-indigo-400 uppercase tracking-widest">Nomination Period</h5>
-                            <p class="text-[10px] text-gray-500 mt-1">Set the date range during which members can submit nominations.</p>
+                    @if (session()->has('settings_message'))
+                        <div class="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-2xl text-green-400 text-sm">
+                            {{ session('settings_message') }}
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-[10px] text-gray-500 uppercase mb-2">Opens On</label>
-                                <input id="nomination-opens-at" type="text"
-                                    class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white font-bold cursor-pointer"
-                                    placeholder="Start date"
-                                    value="{{ $nominationOpensAt ? \Carbon\Carbon::parse($nominationOpensAt)->format('d/m/Y') : '' }}">
+                    @endif
+
+                    <form wire:submit="updateSettings" class="space-y-8">
+                        <div wire:ignore class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-white/5 border border-white/10 rounded-2xl">
+                            <div class="md:col-span-3 pb-2 border-b border-white/10">
+                                <h5 class="text-sm font-bold text-indigo-400 uppercase tracking-widest">Meeting Session Schedule</h5>
                             </div>
                             <div>
-                                <label class="block text-[10px] text-gray-500 uppercase mb-2">Closes On</label>
-                                <input id="nomination-deadline" type="text"
-                                    class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white font-bold cursor-pointer"
-                                    placeholder="End date"
-                                    value="{{ $nominationOpenUntil ? \Carbon\Carbon::parse($nominationOpenUntil)->format('d/m/Y') : '' }}">
+                                <label class="block text-[10px] text-gray-500 uppercase mb-2">Meeting Date</label>
+                                <input id="meeting-date" type="text" class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white font-bold cursor-pointer" placeholder="Select Date" value="{{ $meetingDate ? \Carbon\Carbon::parse($meetingDate)->format('d/m/Y') : '' }}">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-gray-500 uppercase mb-2">Start Time</label>
+                                <input id="start-time" type="text" class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white font-bold cursor-pointer" placeholder="Select Time" value="{{ $startTime ? \Carbon\Carbon::parse($startTime)->format('H:i') : '' }}">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-gray-500 uppercase mb-2">End Time</label>
+                                <input id="end-time" type="text" class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white font-bold cursor-pointer" placeholder="Select Time" value="{{ $endTime ? \Carbon\Carbon::parse($endTime)->format('H:i') : '' }}">
                             </div>
                         </div>
-                    </div>
 
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="block text-sm text-gray-400">Meeting TAC (6 Digits)</label>
-                            @if($tacExpiresAt)
-                                <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-2">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    <span id="tac-countdown" data-expiry="{{ \Carbon\Carbon::parse($tacExpiresAt)->timestamp }}">LOADING...</span>
-                                </div>
-                            @endif
-                        </div>
-                        <input wire:model="meetingTac" type="text" maxlength="6" 
-                            class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-6 py-4 text-3xl font-mono tracking-[0.5em] text-center text-indigo-400 outline-none focus:ring-2 focus:ring-indigo-500">
-                        <p class="text-[10px] text-gray-500 mt-2">This code rotates automatically every 5 minutes.</p>
-                    </div>
-
-                    <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
                         <div>
-                            <p class="font-bold">Voting Module</p>
-                            <p class="text-xs text-gray-500">Allow members to cast their votes</p>
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="block text-sm text-gray-400">Meeting TAC (6 Digits)</label>
+                                @if($tacExpiresAt)
+                                    <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-2">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        <span id="tac-countdown" data-expiry="{{ \Carbon\Carbon::parse($tacExpiresAt)->timestamp }}">LOADING...</span>
+                                    </div>
+                                @endif
+                            </div>
+                            <input wire:model="meetingTac" type="text" maxlength="6"
+                                class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-6 py-4 text-3xl font-mono tracking-[0.5em] text-center text-indigo-400 outline-none focus:ring-2 focus:ring-indigo-500">
+                            <p class="text-[10px] text-gray-500 mt-2">This code rotates automatically every 5 minutes.</p>
                         </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" wire:model="isVotingOpen" class="sr-only peer">
-                            <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                        </label>
+
+                        <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
+                            <div>
+                                <p class="font-bold">Voting Module</p>
+                                <p class="text-xs text-gray-500">Allow members to cast their votes</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" wire:model="isVotingOpen" class="sr-only peer">
+                                <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                            </label>
+                        </div>
+
+                        <div class="p-6 bg-indigo-600/10 border border-indigo-600/20 rounded-2xl relative overflow-hidden">
+                            <div class="flex justify-between items-start mb-3">
+                                <label class="block text-sm font-bold text-indigo-400 uppercase tracking-wider">Active Voting Position</label>
+                                @if($activePositionId)
+                                    <span class="bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded animate-pulse">LIVE NOW</span>
+                                @endif
+                            </div>
+                            <select wire:model="activePositionId" class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500 text-white font-bold">
+                                <option value="">-- ALL VOTING CLOSED --</option>
+                                @foreach($positions as $pos)
+                                    <option value="{{ $pos->id }}">{{ $pos->title }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-[10px] text-gray-500 mt-2 italic">Selecting a position will instantly open the voting form for members for that role only.</p>
+                        </div>
+
+                        <button type="submit" class="w-full bg-indigo-600 py-4 rounded-2xl font-bold shadow-xl shadow-indigo-500/20">
+                            Update Live Session
+                        </button>
+                    </form>
+                </div>
+
+                {{-- ── Nomination Period (standalone card) ── --}}
+                <div class="bg-indigo-600/5 border border-indigo-600/20 p-8 rounded-3xl">
+                    <div class="pb-4 border-b border-indigo-600/20 mb-6">
+                        <h4 class="text-xl font-bold text-white">Nomination Period</h4>
+                        <p class="text-xs text-gray-500 mt-1">Set the exact date range during which members can submit nominations.</p>
                     </div>
 
-                    <div class="p-6 bg-indigo-600/10 border border-indigo-600/20 rounded-2xl relative overflow-hidden">
-                        <div class="flex justify-between items-start mb-3">
-                            <label class="block text-sm font-bold text-indigo-400 uppercase tracking-wider">Active Voting Position</label>
-                            @if($activePositionId)
-                                <span class="bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded animate-pulse">LIVE NOW</span>
-                            @endif
+                    <div wire:ignore class="grid grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Opens On</label>
+                            <input id="nomination-opens-at" type="text"
+                                class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white font-bold cursor-pointer"
+                                placeholder="Pick start date"
+                                value="{{ $nominationOpensAt ? \Carbon\Carbon::parse($nominationOpensAt)->format('d/m/Y') : '' }}">
                         </div>
-                        <select wire:model="activePositionId" class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500 text-white font-bold">
-                            <option value="">-- ALL VOTING CLOSED --</option>
-                            @foreach($positions as $pos)
-                                <option value="{{ $pos->id }}">{{ $pos->title }}</option>
-                            @endforeach
-                        </select>
-                        <p class="text-[10px] text-gray-500 mt-2 italic">Selecting a position will instantly open the voting form for members for that role only.</p>
+                        <div>
+                            <label class="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Closes On</label>
+                            <input id="nomination-deadline" type="text"
+                                class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white font-bold cursor-pointer"
+                                placeholder="Pick end date"
+                                value="{{ $nominationOpenUntil ? \Carbon\Carbon::parse($nominationOpenUntil)->format('d/m/Y') : '' }}">
+                        </div>
                     </div>
 
-                    <button type="submit" class="w-full bg-indigo-600 py-4 rounded-2xl font-bold shadow-xl shadow-indigo-500/20">
-                        Update Live Session
+                    @if($nominationMessage)
+                        <div class="mb-4 p-3 bg-green-500/20 border border-green-500/30 rounded-xl text-green-400 text-sm font-medium text-center">
+                            {{ $nominationMessage }}
+                        </div>
+                    @endif
+
+                    <button type="button" wire:click="saveNominationPeriod"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 py-4 rounded-2xl font-bold shadow-xl shadow-indigo-500/20 transition-all flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        Save Nomination Period
                     </button>
-                </form>
+                </div>
+
             </div>
         @endif
 
@@ -763,69 +782,41 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <script>
-        document.addEventListener('livewire:navigated', () => {
-            initPickers();
-        });
+        // Guard: only attach flatpickr once per element, re-check after every Livewire render
+        function tryPicker(id, options) {
+            const el = document.getElementById(id);
+            if (!el || el._flatpickr) return;
+            flatpickr(el, options);
+        }
 
         function initPickers() {
-            flatpickr("#meeting-date", {
-                dateFormat: "Y-m-d",
-                altInput: true,
-                altFormat: "d/m/Y",
-                theme: "light",
-                onChange: function(selectedDates, dateStr) {
-                    @this.set('meetingDate', dateStr);
-                }
+            tryPicker('meeting-date', {
+                dateFormat: 'Y-m-d', altInput: true, altFormat: 'd/m/Y', theme: 'light',
+                onChange: (d, str) => @this.set('meetingDate', str)
             });
-
-            flatpickr("#start-time", {
-                enableTime: true,
-                noCalendar: true,
-                dateFormat: "H:i",
-                altInput: true,
-                altFormat: "H:i",
-                time_24hr: true,
-                theme: "light",
-                onChange: function(selectedDates, dateStr) {
-                    @this.set('startTime', dateStr);
-                }
+            tryPicker('start-time', {
+                enableTime: true, noCalendar: true, dateFormat: 'H:i',
+                altInput: true, altFormat: 'H:i', time_24hr: true, theme: 'light',
+                onChange: (d, str) => @this.set('startTime', str)
             });
-
-            flatpickr("#end-time", {
-                enableTime: true,
-                noCalendar: true,
-                dateFormat: "H:i",
-                altInput: true,
-                altFormat: "H:i",
-                time_24hr: true,
-                theme: "light",
-                onChange: function(selectedDates, dateStr) {
-                    @this.set('endTime', dateStr);
-                }
+            tryPicker('end-time', {
+                enableTime: true, noCalendar: true, dateFormat: 'H:i',
+                altInput: true, altFormat: 'H:i', time_24hr: true, theme: 'light',
+                onChange: (d, str) => @this.set('endTime', str)
             });
-
-            flatpickr("#nomination-opens-at", {
-                dateFormat: "Y-m-d",
-                altInput: true,
-                altFormat: "d/m/Y",
-                theme: "light",
-                onChange: function(selectedDates, dateStr) {
-                    @this.set('nominationOpensAt', dateStr);
-                }
+            tryPicker('nomination-opens-at', {
+                dateFormat: 'Y-m-d', altInput: true, altFormat: 'd/m/Y', theme: 'light',
+                onChange: (d, str) => @this.set('nominationOpensAt', str)
             });
-
-            flatpickr("#nomination-deadline", {
-                dateFormat: "Y-m-d",
-                altInput: true,
-                altFormat: "d/m/Y",
-                theme: "light",
-                onChange: function(selectedDates, dateStr) {
-                    @this.set('nominationOpenUntil', dateStr);
-                }
+            tryPicker('nomination-deadline', {
+                dateFormat: 'Y-m-d', altInput: true, altFormat: 'd/m/Y', theme: 'light',
+                onChange: (d, str) => @this.set('nominationOpenUntil', str)
             });
         }
 
-        // Initial load
+        // Run after every Livewire render (covers tab switches) and on hard load
+        document.addEventListener('livewire:updated', initPickers);
+        document.addEventListener('livewire:navigated', initPickers);
         initPickers();
 
         // Live Clock Script
