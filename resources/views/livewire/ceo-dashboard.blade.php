@@ -152,6 +152,46 @@
                     <div class="mt-4 text-xs text-gray-400 font-medium">Open for Election</div>
                 </div>
             </div>
+
+            {{-- Nomination Period Card --}}
+            @php
+                $nomIsOpen = $nominationOpenUntil && \Carbon\Carbon::today()->lte(\Carbon\Carbon::parse($nominationOpenUntil));
+            @endphp
+            <div class="mb-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 bg-white/5 border border-white/10 rounded-2xl">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center {{ $nomIsOpen ? 'bg-indigo-600/20 text-indigo-400' : 'bg-red-500/10 text-red-400' }}">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase font-bold tracking-widest">Nomination Period</p>
+                        <div class="flex items-center gap-3 mt-1">
+                            <span class="font-black text-lg {{ $nomIsOpen ? 'text-indigo-400' : 'text-red-400' }}">
+                                {{ $nomIsOpen ? 'OPEN' : 'CLOSED' }}
+                            </span>
+                            @if($nominationOpenUntil)
+                                <span class="text-xs text-gray-500">
+                                    · {{ $nomIsOpen ? 'Closes' : 'Closed' }} on
+                                    <span class="text-white font-bold">{{ \Carbon\Carbon::parse($nominationOpenUntil)->format('d M Y') }}</span>
+                                </span>
+                            @else
+                                <span class="text-xs text-gray-500 italic">· No deadline set</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a href="{{ $nominationUrl }}" target="_blank"
+                        class="text-[10px] bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-2 rounded-lg font-bold uppercase tracking-wider transition-all">
+                        Open Page
+                    </a>
+                    <button wire:click="toggleNominationQrModal"
+                        class="text-[10px] bg-indigo-600 hover:bg-indigo-700 px-3 py-2 rounded-lg font-bold uppercase tracking-wider transition-all">
+                        Generate QR
+                    </button>
+                </div>
+            </div>
         @endif
 
         @if($activeTab === 'attendance')
@@ -372,6 +412,20 @@
                         <div>
                             <label class="block text-[10px] text-gray-500 uppercase mb-2">End Time</label>
                             <input id="end-time" type="text" class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white font-bold cursor-pointer" placeholder="Select Time" value="{{ $endTime ? \Carbon\Carbon::parse($endTime)->format('H:i') : '' }}">
+                        </div>
+                    </div>
+
+                    <div wire:ignore class="p-6 bg-indigo-600/5 border border-indigo-600/20 rounded-2xl">
+                        <div class="pb-2 border-b border-indigo-600/20 mb-4">
+                            <h5 class="text-sm font-bold text-indigo-400 uppercase tracking-widest">Nomination Period</h5>
+                            <p class="text-[10px] text-gray-500 mt-1">Members can submit nominations up to and including this date.</p>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-500 uppercase mb-2">Nomination Closes On</label>
+                            <input id="nomination-deadline" type="text"
+                                class="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white font-bold cursor-pointer"
+                                placeholder="Select deadline date"
+                                value="{{ $nominationOpenUntil ? \Carbon\Carbon::parse($nominationOpenUntil)->format('d/m/Y') : '' }}">
                         </div>
                     </div>
 
@@ -721,6 +775,16 @@
                     @this.set('endTime', dateStr);
                 }
             });
+
+            flatpickr("#nomination-deadline", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                theme: "light",
+                onChange: function(selectedDates, dateStr) {
+                    @this.set('nominationOpenUntil', dateStr);
+                }
+            });
         }
 
         // Initial load
@@ -795,6 +859,46 @@
                         <p class="text-xs font-mono text-indigo-400 break-all">{{ $attendanceUrl }}</p>
                     </div>
                     <p class="text-xs text-gray-400">Members can scan this code to quickly access the attendance verification page.</p>
+                </div>
+
+                <button onclick="window.print()" class="w-full mt-6 bg-indigo-600 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    Print QR Code
+                </button>
+            </div>
+        </div>
+    @endif
+
+    <!-- Nomination QR Code Modal -->
+    @if($showNominationQrModal)
+        <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div class="bg-[#1a1a1c] border border-white/10 w-full max-w-sm rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-300">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-xl font-bold">Nomination QR</h3>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">
+                            @if($nominationOpenUntil)
+                                Closes {{ \Carbon\Carbon::parse($nominationOpenUntil)->format('d M Y') }}
+                            @else
+                                No deadline set
+                            @endif
+                        </p>
+                    </div>
+                    <button wire:click="toggleNominationQrModal" class="p-2 hover:bg-white/5 rounded-full transition-all text-gray-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl flex items-center justify-center shadow-inner">
+                    {!! QrCode::size(250)->generate($nominationUrl) !!}
+                </div>
+
+                <div class="mt-8 text-center space-y-4">
+                    <div class="p-4 bg-white/5 border border-white/5 rounded-xl">
+                        <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Target URL</p>
+                        <p class="text-xs font-mono text-indigo-400 break-all">{{ $nominationUrl }}</p>
+                    </div>
+                    <p class="text-xs text-gray-400">Members can scan this code to access the nomination submission page.</p>
                 </div>
 
                 <button onclick="window.print()" class="w-full mt-6 bg-indigo-600 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all flex items-center justify-center gap-2">

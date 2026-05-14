@@ -17,6 +17,9 @@ class CeoDashboard extends Component
     public $searchTerm = '';
     public $showQrModal = false;
     public $attendanceUrl;
+    public $showNominationQrModal = false;
+    public $nominationUrl;
+    public $nominationOpenUntil;
     
     // Position Management
     public $newPositionName;
@@ -71,12 +74,21 @@ class CeoDashboard extends Component
         $this->startTime = $settings->start_time;
         $this->endTime = $settings->end_time;
         
-        $this->attendanceUrl = route('attendance.scan');
+        $this->attendanceUrl    = route('attendance.scan');
+        $this->nominationUrl    = route('nominate.index');
+        $this->nominationOpenUntil = $settings->nomination_open_until
+            ? $settings->nomination_open_until->format('Y-m-d')
+            : '2026-05-20';
     }
 
     public function toggleQrModal()
     {
         $this->showQrModal = !$this->showQrModal;
+    }
+
+    public function toggleNominationQrModal()
+    {
+        $this->showNominationQrModal = !$this->showNominationQrModal;
     }
 
     public function refreshSettings()
@@ -120,12 +132,13 @@ class CeoDashboard extends Component
         $this->endTime = $this->endTime ?: $settings->end_time;
 
         $settings->update([
-            'meeting_tac' => $this->meetingTac,
-            'is_voting_open' => (bool)$this->isVotingOpen,
-            'active_position_id' => $this->activePositionId ?: null,
-            'meeting_date' => $this->meetingDate,
-            'start_time' => $this->startTime,
-            'end_time' => $this->endTime,
+            'meeting_tac'           => $this->meetingTac,
+            'is_voting_open'        => (bool)$this->isVotingOpen,
+            'active_position_id'    => $this->activePositionId ?: null,
+            'meeting_date'          => $this->meetingDate,
+            'start_time'            => $this->startTime,
+            'end_time'              => $this->endTime,
+            'nomination_open_until' => $this->nominationOpenUntil ?: null,
         ]);
         session()->flash('settings_message', 'Meeting settings and schedule updated successfully!');
     }

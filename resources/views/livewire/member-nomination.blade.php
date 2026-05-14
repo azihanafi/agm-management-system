@@ -7,13 +7,23 @@
         <p class="text-gray-400 text-sm mt-2">Submit your choice for the 2026 Committee</p>
     </div>
 
+    @if(!$nominationIsOpen)
+        <div class="mb-6 p-6 bg-red-500/10 border border-red-500/30 rounded-2xl text-center">
+            <svg class="w-10 h-10 text-red-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <p class="text-red-400 font-black text-lg uppercase tracking-widest">Nominations Closed</p>
+            @if($nominationDeadline)
+                <p class="text-gray-500 text-xs mt-2">The nomination period ended on <span class="text-white font-bold">{{ \Carbon\Carbon::parse($nominationDeadline)->format('d M Y') }}</span>.</p>
+            @endif
+        </div>
+    @endif
+
     @if ($message)
-        <div class="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-2xl text-green-400 text-sm font-medium animate-bounce text-center">
+        <div class="mb-6 p-4 {{ str_contains($message, 'closed') ? 'bg-red-500/20 border-red-500/30 text-red-400' : 'bg-green-500/20 border-green-500/30 text-green-400' }} border rounded-2xl text-sm font-medium text-center">
             {{ $message }}
         </div>
     @endif
 
-    <form wire:submit="submitNomination" class="space-y-6">
+    <form wire:submit="submitNomination" class="space-y-6 {{ !$nominationIsOpen ? 'opacity-50 pointer-events-none select-none' : '' }}">
         <div class="space-y-2">
             <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Target Position</label>
             <select wire:model="selectedPosition" class="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-white font-bold appearance-none">
