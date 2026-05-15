@@ -12,13 +12,25 @@ use Carbon\Carbon;
 
 class MemberNomination extends Component
 {
-    public $selectedPosition;
     public $selectedMember;
-    public $search = '';
+    public $searchInputs = []; // Independent search text for each category
+    public $activePositionId = null; 
+    public $isIdentified = false; // Gatekeeper for nomination
+    public $verificationId = '';
     public $message;
+    public $myNominations = [];
 
-    public function updatedSearch()
+    public function mount()
     {
+        if (Auth::check() && Auth::user()->role !== 'admin') {
+            $this->verificationId = Auth::user()->staff_id;
+        }
+    }
+
+    public function updatedSearchInputs($value, $key)
+    {
+        // $key will be the position_id
+        $this->activePositionId = $key;
         $this->selectedMember = null;
         $this->message = '';
     }
@@ -36,7 +48,7 @@ class MemberNomination extends Component
         return 'open';
     }
 
-    public function submitNomination()
+    public function submitNomination($positionId)
     {
         $status = $this->nominationStatus();
         if ($status === 'closed') {
@@ -48,38 +60,63 @@ class MemberNomination extends Component
             return;
         }
 
-        $this->validate([
-            'selectedPosition' => 'required',
-            'selectedMember' => 'required',
-        ]);
-
-        // Prevent the SAME user from nominating the SAME person for the SAME position twice
-        $exists = Nomination::where('position_id', $this->selectedPosition)
-            ->where('nominee_id', $this->selectedMember)
+        // Check if user has already nominated for this category
+        $existing = Nomination::where('position_id', $positionId)
             ->where('nominator_id', Auth::id())
             ->exists();
 
-        if ($exists) {
-            $this->message = 'You have already nominated this person for this position.';
+        if ($existing) {
+            $this->message = 'error: You have already submitted a nomination for this category.';
+            return;
+        }
+
+        if (!$this->selectedMember || $this->activePositionId != $positionId) {
+            $this->message = 'Please select a nominee from the search results first.';
             return;
         }
 
         Nomination::create([
-            'position_id' => $this->selectedPosition,
-            'nominee_id' => $this->selectedMember,
+            'position_id' => $positionId, 
             'nominator_id' => Auth::id(),
+            'nominee_id' => $this->selectedMember,
             'is_disqualified' => false,
             'ceo_override' => false,
         ]);
 
-        $this->reset(['selectedPosition', 'selectedMember']);
-        $this->message = 'Your nomination has been submitted successfully!';
+        $this->searchInputs[$positionId] = '';
+        $this->activePositionId = null;
+        $this->selectedMember = null;
+        $this->message = 'Nomination submitted successfully! This category is now closed.';
     }
 
-    public function selectMember($id, $name)
+    public function selectMember($id, $name, $positionId)
     {
         $this->selectedMember = $id;
-        $this->search = $name;
+        $this->searchInputs[$positionId] = $name;
+    }
+
+    public function verifyId()
+    {
+        $this->validate(['verificationId' => 'required']);
+
+        $user = User::where('staff_id', trim($this->verificationId))->first();
+
+        if ($user) {
+            Auth::login($user);
+            $this->isIdentified = true;
+            $this->message = '';
+        } else {
+            $this->addError('verificationId', 'Staff ID not found in the member database.');
+        }
+    }
+
+    public function clearSearch($positionId)
+    {
+        $this->searchInputs[$positionId] = '';
+        if ($this->activePositionId == $positionId) {
+            $this->activePositionId = null;
+            $this->selectedMember = null;
+        }
     }
 
     public function render()
@@ -87,15 +124,35 @@ class MemberNomination extends Component
         $settings = MeetingControl::first();
         $status = $this->nominationStatus();
 
+        $nominations = Nomination::where('nominator_id', Auth::id())->get();
+        $nomineeIds = $nominations->pluck('nominee_id')->toArray();
+        $nomineeNames = User::whereIn('id', $nomineeIds)->pluck('name', 'id')->toArray();
+
+        $myNominations = [];
+        foreach ($nominations as $nom) {
+            $myNominations[(int)$nom->position_id] = $nomineeNames[$nom->nominee_id] ?? 'Selected Candidate';
+        }
+
+        $activeSearch = ($this->activePositionId && isset($this->searchInputs[$this->activePositionId])) 
+            ? $this->searchInputs[$this->activePositionId] 
+            : '';
+
+        $allPositions = Position::all();
+        $openPositions = $allPositions->filter(fn($pos) => !isset($myNominations[(int)$pos->id]));
+        $completedPositions = $allPositions->filter(fn($pos) => isset($myNominations[(int)$pos->id]));
+
         return view('livewire.member-nomination', [
-            'positions' => Position::all(),
+            'openPositions' => $openPositions,
+            'completedPositions' => $completedPositions,
+            'nominatedIds' => array_keys($myNominations),
             'nominationStatus'   => $status,
             'nominationOpensAt'  => $settings?->nomination_opens_at,
             'nominationDeadline' => $settings?->nomination_open_until,
-            'members' => ($status === 'open' && strlen($this->search) >= 2)
-                ? User::where(function($q) {
-                        $q->where('name', 'like', '%' . $this->search . '%')
-                          ->orWhere('staff_id', 'like', '%' . $this->search . '%');
+            'myNominations' => $myNominations,
+            'members' => ($status === 'open' && strlen($activeSearch) >= 2)
+                ? User::where(function($q) use ($activeSearch) {
+                        $q->where('name', 'like', '%' . $activeSearch . '%')
+                          ->orWhere('staff_id', 'like', '%' . $activeSearch . '%');
                     })
                     ->limit(10)
                     ->get()

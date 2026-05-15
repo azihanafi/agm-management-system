@@ -33,10 +33,11 @@
 
 <body class="min-h-screen flex flex-col">
     <nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/5">
+
         <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 accent-gradient rounded-lg glow flex items-center justify-center font-bold text-white">A
-            </div>
-            <span class="text-xl font-bold tracking-tight">AGM <span class="text-red-500">2026</span></span>
+            <img src="{{ asset('assets/FJB.png') }}" alt="FJB Logo" class="h-10 w-auto">
+            <span class="text-xl font-black tracking-tighter uppercase italic text-white">AGM <span
+                    class="text-red-500">2026</span></span>
         </div>
         @auth
             <div class="flex items-center space-x-4">

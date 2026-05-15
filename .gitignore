@@ -1,0 +1,33 @@
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
+npm-debug.log
+yarn-error.log
+/.fleet
+/.idea
+/.vscode
+*.sqlite
+*.sqlite-journal
+
+# Laravel generated files
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+/bootstrap/cache/*
+
+# Livewire tmp uploads
+/storage/app/livewire-tmp/*
+
+# Debug/scratch files
+debug_voting.php
+scratch/

@@ -49,6 +49,9 @@ class CeoDashboard extends Component
     public $startTime;
     public $endTime;
 
+    // Admin Control
+    public $adminSearchTerm = '';
+
     public function mount()
     {
         $settings = \App\Models\MeetingControl::first();
@@ -273,6 +276,35 @@ class CeoDashboard extends Component
         Position::destroy($id);
         session()->flash('message', 'Position removed successfully!');
     }
+
+    public function resetNominations()
+    {
+        Nomination::truncate();
+        session()->flash('nomination_message', 'All nominations have been reset successfully!');
+    }
+
+    public function promoteToAdmin($userId)
+    {
+        $user = User::find($userId);
+        if ($user) {
+            $user->update(['role' => 'admin']);
+            session()->flash('admin_message', "{$user->name} has been promoted to Administrator.");
+        }
+    }
+
+    public function demoteToMember($userId)
+    {
+        if ($userId == auth()->id()) {
+            session()->flash('admin_error', "You cannot demote yourself.");
+            return;
+        }
+
+        $user = User::find($userId);
+        if ($user) {
+            $user->update(['role' => 'member']);
+            session()->flash('admin_message', "{$user->name} has been demoted to Member.");
+        }
+    }
     public function exportAttendance()
     {
         $date = $this->selectedLogDate ?: now()->format('Y-m-d');
@@ -344,6 +376,14 @@ class CeoDashboard extends Component
                 ->map(function($items) {
                     return $items->take(30);
                 }),
+            'all_admins' => User::where('role', 'admin')->get(),
+            'non_admins' => User::where('role', 'member')
+                ->when($this->adminSearchTerm, function($query) {
+                    $query->where('name', 'like', '%' . $this->adminSearchTerm . '%')
+                          ->orWhere('staff_id', 'like', '%' . $this->adminSearchTerm . '%');
+                })
+                ->limit(10)
+                ->get(),
         ]);
     }
 }

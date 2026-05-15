@@ -30,13 +30,11 @@ Route::middleware(['auth', 'EnsureMemberIsPresent'])->group(function () {
     Route::get('/voting', VotingModule::class)->name('voting.index');
 });
 
-// Protected Nomination Routes (Require auth only, can be done before AGM)
-Route::middleware(['auth'])->group(function () {
-    Route::get('/nominate', MemberNomination::class)->name('nominate.index');
-    Route::get('/MemberNomination', function() { return redirect()->route('nominate.index'); });
-});
+// Nomination Routes (Gatekeeper handles internal auth)
+Route::get('/nominate', MemberNomination::class)->name('nominate.index');
+Route::get('/MemberNomination', function() { return redirect()->route('nominate.index'); });
 
-// Admin/CEO Dashboard
+// Protected Admin/CEO Dashboard
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', CeoDashboard::class)->name('admin.dashboard');
     

@@ -1,11 +1,10 @@
 <div class="min-h-screen bg-[#0a0a0c] text-white flex overflow-hidden">
     <!-- Sidebar -->
     <aside class="w-64 bg-white/5 backdrop-blur-xl border-r border-white/10 flex flex-col">
-        <div class="p-6">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold">A</div>
-                <h1 class="text-xl font-bold tracking-tight">AGM COMMAND</h1>
-            </div>
+        <div class="flex items-center justify-center space-x-3">
+            <img src="{{ asset('assets/FJB.png') }}" alt="FJB Logo" class="h-10 w-auto">
+            <span class="text-xl font-black tracking-tighter uppercase bold text-white">AGM <span
+                    class="text-red-500">2026</span></span>
         </div>
 
         <nav class="flex-1 px-4 space-y-2 mt-4">
@@ -69,6 +68,11 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
                 Top Nominations
             </button>
+            <button wire:click="setTab('admin_control')" 
+                class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ $activeTab === 'admin_control' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-gray-400 hover:bg-white/5' }}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                Admin Control
+            </button>
         </nav>
 
         <div class="p-6 border-t border-white/10 mt-auto">
@@ -104,6 +108,7 @@
                     @elseif($activeTab === 'bulk_upload') Bulk Member Management
                     @elseif($activeTab === 'org_chart') Organization Chart Management
                     @elseif($activeTab === 'nomination_leaderboard') Nomination Leaderboard (Top 30)
+                    @elseif($activeTab === 'admin_control') Administrator User Control
                     @endif
                 </h2>
                 <p class="text-gray-400 mt-1">Manage all AGM data and real-time voting progress</p>
@@ -729,6 +734,20 @@
 
         @if($activeTab === 'nomination_leaderboard')
             <div class="space-y-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h4 class="text-xl font-bold text-gray-400 uppercase tracking-widest">Global Nomination Data</h4>
+                    <button onclick="confirm('CRITICAL ACTION: Are you sure you want to RESET ALL NOMINATIONS? This cannot be undone.') || event.stopImmediatePropagation()" 
+                        wire:click="resetNominations" 
+                        class="px-6 py-3 bg-red-500/10 border border-red-500/30 text-red-500 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/10">
+                        Reset All Nominations
+                    </button>
+                </div>
+
+                @if (session()->has('nomination_message'))
+                    <div class="p-4 bg-green-500/20 border border-green-500/30 rounded-2xl text-green-400 text-sm font-bold text-center">
+                        {{ session('nomination_message') }}
+                    </div>
+                @endif
                 @foreach($top_nominations as $positionId => $items)
                     @php $position = $items->first()->position; @endphp
                     <div class="bg-white/5 border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
@@ -799,6 +818,123 @@
                         <p class="text-gray-600 mt-2 max-w-xs mx-auto">Leaderboard data will appear once members start nominating candidates.</p>
                     </div>
                 @endif
+            </div>
+        @endif
+        @if($activeTab === 'admin_control')
+            <div class="space-y-8 animate-in fade-in duration-500">
+                @if (session()->has('admin_message'))
+                    <div class="p-4 bg-green-500/20 border border-green-500/30 rounded-2xl text-green-400 text-sm font-bold shadow-lg shadow-green-500/10">
+                        {{ session('admin_message') }}
+                    </div>
+                @endif
+                @if (session()->has('admin_error'))
+                    <div class="p-4 bg-red-500/20 border border-red-500/30 rounded-2xl text-red-400 text-sm font-bold shadow-lg shadow-red-500/10">
+                        {{ session('admin_error') }}
+                    </div>
+                @endif
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Search & Promote -->
+                    <div class="bg-white/5 border border-white/10 p-8 rounded-[2.5rem] shadow-2xl h-fit">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                            </div>
+                            <div>
+                                <h4 class="text-xl font-bold">Promote Admin</h4>
+                                <p class="text-xs text-gray-500">Upgrade member privileges</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="relative">
+                                <input wire:model.live="adminSearchTerm" type="text" placeholder="Search by name or staff ID..." 
+                                    class="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-gray-700">
+                            </div>
+
+                            <div class="space-y-3">
+                                @foreach($non_admins as $m)
+                                    <div class="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-all group">
+                                        <div>
+                                            <div class="font-bold text-sm text-white">{{ $m->name }}</div>
+                                            <div class="text-[10px] text-gray-500 font-mono tracking-wider">{{ $m->staff_id }}</div>
+                                        </div>
+                                        <button wire:click="promoteToAdmin({{ $m->id }})" 
+                                            class="px-4 py-2 bg-indigo-600/20 text-indigo-400 border border-indigo-600/30 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all opacity-0 group-hover:opacity-100">
+                                            PROMOTE
+                                        </button>
+                                    </div>
+                                @endforeach
+                                @if($non_admins->isEmpty() && $adminSearchTerm)
+                                    <div class="text-center py-6 text-gray-600 italic text-xs">No matching members found</div>
+                                @elseif($non_admins->isEmpty())
+                                    <div class="text-center py-6 text-gray-600 italic text-xs">Type to search members...</div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin List -->
+                    <div class="md:col-span-2 bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col">
+                        <div class="p-8 border-b border-white/10 flex justify-between items-center bg-white/5">
+                            <h4 class="text-xl font-bold flex items-center gap-3">
+                                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                                Current System Administrators
+                            </h4>
+                            <span class="px-4 py-2 bg-indigo-600 rounded-xl text-xs font-black shadow-lg shadow-indigo-500/20">
+                                {{ $all_admins->count() }} ACTIVE
+                            </span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-white/5 text-[10px] uppercase tracking-widest text-gray-500">
+                                    <tr>
+                                        <th class="px-8 py-5">Administrator</th>
+                                        <th class="px-8 py-5">Staff ID</th>
+                                        <th class="px-8 py-5 text-right">Access Level</th>
+                                        <th class="px-8 py-5 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-white/5">
+                                    @foreach($all_admins as $admin)
+                                        <tr class="hover:bg-white/5 transition-all group">
+                                            <td class="px-8 py-6">
+                                                <div class="flex items-center gap-4">
+                                                    <div class="w-10 h-10 rounded-full bg-indigo-600/20 border border-indigo-600/30 flex items-center justify-center font-bold text-indigo-400">
+                                                        {{ strtoupper(substr($admin->name, 0, 1)) }}
+                                                    </div>
+                                                    <div>
+                                                        <div class="font-bold text-white uppercase text-sm">{{ $admin->name }}</div>
+                                                        <div class="text-[10px] text-gray-500 font-mono italic">Primary Administrator</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-8 py-6">
+                                                <span class="text-indigo-400 font-mono text-sm tracking-tight">{{ $admin->staff_id }}</span>
+                                            </td>
+                                            <td class="px-8 py-6 text-right">
+                                                <span class="px-3 py-1 bg-red-500/20 text-red-400 border border-red-500/30 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                                    FULL ACCESS
+                                                </span>
+                                            </td>
+                                            <td class="px-8 py-6 text-right">
+                                                @if($admin->id !== auth()->id())
+                                                    <button onclick="confirm('Are you sure? This user will lose all administrative access.') || event.stopImmediatePropagation()" 
+                                                        wire:click="demoteToMember({{ $admin->id }})" 
+                                                        class="p-3 bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 rounded-xl transition-all border border-white/5 hover:border-red-500/30 group-hover:scale-110">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                    </button>
+                                                @else
+                                                    <span class="text-[10px] text-gray-600 font-black uppercase tracking-widest italic">CURRENT SESSION</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         @endif
     </main>
